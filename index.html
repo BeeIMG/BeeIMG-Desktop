@@ -1,0 +1,299 @@
+<!DOCTYPE html><!-- Built With HTML5, CSS3, Bootstrap 3, Jquery, PHP7 and NodeJS. Copyright BeeIMG 2016. Made In Sri Lanka. -->
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>BeeIMG uploader</title>
+<link rel="shortcut icon" type="image/x-icon" href="https://i.beeimg.com/resources/icons/favicon.ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="https://i.beeimg.com/resources/beeimg-combined.min.css"/>
+</head>
+<body style="background-image: linear-gradient(rgb(192, 93, 10), rgb(168, 0, 65)); background-repeat: no-repeat; background-attachment: fixed;" id="container"><div class="pace  pace-inactive"><div data-progress="99" data-progress-text="100%" style="transform: translate3d(100%, 0px, 0px);" class="pace-progress">
+  <div class="pace-progress-inner"></div>
+</div>
+<div class="pace-activity"></div></div>
+<div id="wrapper">
+<script>window.$ = window.jQuery = require('./js/jquery.js');</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://i.beeimg.com/resources/beeimg-combined.min.js"></script>
+<script type="text/javascript">
+var j = jQuery.noConflict();
+j(document).ready(function() {
+	//IE 10 Fix JS for Bootstrap	
+	if (navigator.userAgent.match(/IEMobile\/10\.0/)) {
+	  var msViewportStyle = document.createElement('style')
+	  msViewportStyle.appendChild(
+		document.createTextNode(
+		  '@-ms-viewport{width:auto!important}'
+		)
+	  )
+	  document.querySelector('head').appendChild(msViewportStyle)
+	}
+});
+function alerty(msg,type){
+	notification = new NotificationFx({
+	message : msg,
+	wrapper : document.getElementById('noti'),
+	layout : 'growl',
+	effect : 'genie',
+	type : type, // notice, warning, error or success
+	}).show();
+}
+function loadscri() {
+	j(".fancybox").fancybox();
+	j('[data-toggle="tooltip"]').tooltip();
+	j('[data-toggle="popover"]').popover({ html : true });
+}
+</script>
+<header><div id="header">
+<div class="navbar-wrapper">
+<div class="navbar navbar-default navbar-static-top" style="padding: 0% 2%;">
+<div class="navbar-header">
+<a data-original-title="BeeIMG Free Image Hosting" style="float: left;padding: 7px 7px;" href="//beeimg.com/" data-placement="right" data-toggle="tooltip" title="">
+<img src="https://i.beeimg.com/resources/images/logo.png" alt="BeeIMG Logo" style="width:auto;max-height:35px"></a>
+<span class="nav navbar-nav pull-right">
+<li><a href="//beeimg.com/login" id="login_li" data-toggle="modal" data-target="#login"><i class="glyphicon glyphicon-log-in"></i>Login</a></li>
+</span>
+</div></div></div></div>
+<div class="modal fade" id="social" tabindex="-1" role="dialog" aria-labelledby="social" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"></div></div></div>
+<div class="modal modal-static fade" tabindex="-1" id="processing-modal" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"></div></div></div>
+<div class="modal fade" id="lang" tabindex="-1" role="dialog" aria-labelledby="social" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"></div></div></div>
+<div class="modal fade" tabindex="-1" id="login" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Login</h4>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="username" class="control-label">Username:</label>
+            <input type="text" class="form-control" id="username">
+          </div>
+          <div class="form-group">
+            <label for="password" class="control-label">Password:</label>
+            <input type="password" class="form-control" id="password">
+          </div>
+		  <div class="text-center">
+		  <button type="button" class="btn btn-info" id="login_btn">Login</button>
+		  <hr><div id="notice1"></div><hr>
+		  <div class="form-group">
+            <label for="api-key" class="control-label">API Key:</label>
+            <input type="text" class="form-control text-center" id="key" disabled>
+          </div>
+        </form>
+      </div> </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" id="save">Save changes</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script src="https://cdn.jsdelivr.net/pouchdb/6.0.7/pouchdb.min.js"></script>
+<script type="text/javascript">
+var db = new PouchDB('beeimg-test');
+
+/*db.put({
+  _id: 'test',
+  name: 'David',
+  age: 69
+});*/
+
+db.get('user_1').then(function (user) {
+  j("#login_li").html('<i class="glyphicon glyphicon-refresh"></i>Loggedin as '+user.name+'</a>');
+});
+/*
+db.get('test').then(function (doc) {
+  return db.remove(doc);
+});
+*/
+
+j("#login_btn").click(function(l){;
+l.preventDefault();
+var u = j("#username").val();
+var p = j("#password").val();
+j.ajax({
+            url: "https://beeimg.com/api/getkey",
+            type: "POST",
+            cache: false,
+			dataType: 'json',
+            data: {
+				by: "bee_desktop",
+                username: u,
+				password: p,
+            },
+            success: function(data) {
+				if(data.status==403)
+				{
+				j("#notice1").removeClass().addClass("alert alert-warning").text("Wrong Username or Password");
+				}
+				if(data.status==429)
+				{
+				j("#notice1").removeClass().addClass("alert alert-info").text("Endpoint access is limited, Please try again in 5 seconds");
+				}
+				if(data.status==200)
+				{
+				j("#notice1").removeClass().addClass("alert alert-success").text("Logged in Succesfuly");
+				j("#key").val(data.key);
+				alerty("Your API was retrved Succesfuly","info");
+				}
+				if(!j.isNumeric(data.status))
+				{
+				j("#notice1").removeClass().addClass("alert alert-danger").text("There was an unexpected error");
+				}
+            }
+		 }
+     )
+});
+j("#save").click(function(l){;
+l.preventDefault();
+var u = j("#username").val();
+var k = j("#key").val();
+
+db.get('user_1').then(function (user) {
+  if(user.key==k) return;
+  db.remove(user);
+	db.put({
+	  _id: 'user_1',
+	  name: u,
+	  key: k
+	});
+	alerty("Updated","info");
+});
+
+alerty("Loggedin","info");
+j('#login').modal('toggle');
+});
+
+j(function() {
+    function reposition() {
+        var modal = j(this),
+            dialog = modal.find('.modal-dialog');
+        modal.css('display', 'flex'); modal.css('align-items', 'center');
+
+        // Dividing by two centers the modal exactly, but dividing by three 
+        // or four works better for larger screens.
+        //dialog.css("margin-top", Math.max(0, (j(window).height() - dialog.height()) / 2));
+    }
+    // Reposition when a modal is shown
+    j('.modal').on('show.bs.modal', reposition);
+    // Reposition when the window is resized
+    j(window).on('resize', function() {
+        j('.modal:visible').each(reposition);
+    });
+});</script></header><div id="contents">
+<div id="promo_div" class="container"></div><div id="noti"></div>
+<script type="text/javascript">
+var uploadconfig = {
+    server: "localhost",
+    maxfilesize: "55574528",
+    maxfileuploads: "60",
+    filetypes: ["jpg", "png", "gif", "jpeg","ico"],
+	chunksize: "160000",
+	simultaneousuploads: 5,
+};
+
+j(document).ready(function() {
+	j("#getlinks").click(function() {
+	j("#processing-modal").modal({
+		remote: "//beeimg.com/modals?loading"
+	});
+	j.ajax({
+		url: "//beeimg.com/modals?link_generator",
+		type: "POST",
+		cache: false,
+		data: {
+			id: lid,
+		},
+		success: function(data) {
+			j("div#links_gened .modal-dialog .modal-content").html(data);
+			j("#links_gened").modal("show");
+			j("#processing-modal").modal("hide");
+		}
+	});
+  });
+});
+</script>
+<div class="jumbotron container fadeInDown animated" style="border-radius:10px;">
+	<ul class="nav nav-pills btn-lg" id="myTab" style="width: 45%; margin-left: auto; margin-right: auto; display:flex;justify-content:center;">
+		<li class="active">
+			<a data-toggle="tab" href="#resumable">File Uploader</a>
+		</li>
+		<li>
+			<a data-toggle="tab" href="#bupu">URL Uploader</a>
+		</li>
+	</ul>
+	<div class="tab-content">
+		<div class="tab-pane fade in active" id="resumable">
+			<div class="well col-md-12 col-xs-12" style="background: #fff;">
+				<p class="pull-right col-md-4 col-xs-12 text-center" id="fileqstatus" style="font-weight: bold">
+					No files are selected
+				</p><button class="btn btn-lg btn-primary col-md-4 col-xs-12" id="rupload_btn" type="button">Select Files To Upload<input multiple="multiple" style="display: none;" type="file"></button>
+			</div>
+		</div>
+		<div class="tab-pane fade" id="bupu">
+			<div class="well col-md-12 col-xs-12" style="background: #fff;">
+				<p class="pull-right col-md-4 col-xs-12 text-center" id="urlqstatus" style="font-weight: bold">
+					No urls are added
+				</p>
+				<div class="input-group col-md-8 col-xs-12">
+					<input class="form-control input-lg" id="urlholder" name="url" placeholder="Enter a URL To Upload" type="text"> <span class="input-group-btn"><button class="btn btn-default btn-lg" id="addurlbtn" name="addurl" type="button">Add</button></span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="container well col-md-12 col-xs-12" id="upload-center" style="background: #F8F8F8;display: none;position: relative;top: -25px;"></div><br>
+	
+	<span class="col-lg-7 col-md-6 col-sm-5 col-xs-8" style="font-size: 105%; font-weight: 600;">
+	<span data-original-title="get more by registering" class="label label-success" data-placement="bottom" data-toggle="tooltip" title="">Maximum image file size: 53MB</span>
+	<span data-original-title="get more by registering" class="label label-danger" data-placement="bottom" data-toggle="tooltip" title="">Maximum number of uploads: 60</span>
+	<span class="label label-info">Extensions allowed: JPG, PNG, JPEG, GIF</span>
+	</span>
+	
+	<span class="col-lg-5 col-md-6 col-sm-7 col-xs-12">
+	<span class="btn btn-danger pull-right" id="clear-UC" style="display: none;"><i class="glyphicon glyphicon-trash"></i> Clear List</span>
+	<span class="btn btn-success pull-right" id="getlinks" style="margin-right: 5px;"><i class="glyphicon glyphicon-link"></i> Links</span>
+	</span>
+</div>
+<script>Resumable = require('./js/resumable.js');</script>
+<script type="text/javascript" src="./js/uploader.js"></script>
+<div id="cupload" class="well container carousel slide pull-down fadeInUp animated">
+  <div class="carousel-inner">
+    <div class="item"><div class="container"><h4 class="text-center">No IP's will be recorded on Uploading. By Uploading your agree to our a <a href="/tos">terms of service</a>.</h4></div></div>
+	<div class="item"><div class="container"><h4 class="text-center">We moderate your uploads. By Uploading your agree to our <a href="/tos">terms of service</a>.</h4></div></div>
+    <!--<div class="item"><div class="container"><h4 class="text-center">Advertising is not allowed. By Uploading your agree to our <a href="/tos">terms of service</a>.</h4></div></div>-->
+	<div class="item active"><div class="container"><h4 class="text-center">TIP: You can upload images and urls via CTRL-V.</h4></div></div>
+	<div class="item"><div class="container"><h4 class="text-center">TIP: You can upload images via drag and drop.</h4></div></div>
+	</div>
+  <a class="carousel-control left" href="#cupload" data-slide="prev"><span class="icon-prev"><span></span></span></a>
+  <a class="carousel-control right" href="#cupload" data-slide="next"><span class="icon-next"><span></span></span></a>
+</div>
+<div class="modal fade" id="links_gened" tabindex="-1"><div class="modal-dialog"><div class="modal-content"></div></div></div>
+<div class="container"></div>
+<div style="position: absolute;top: 0px;margin: 0px;" id="CV-upload-container" contenteditable=""></div></div>
+<footer id="footer">
+<div class="navbar-default col-xs-12">
+<ul class="nav navbar-nav pull-left">
+  <li><a href="https://beeimg.com/contact" rel="nofollow">contact</a></li>
+  <li><a href="//beeimg.com/api/" rel="nofollow">api</a></li>
+  <li><a href="https://blog.beeimg.com/" rel="nofollow">blog</a></li>
+  <li><a href="//beeimg.com/tos" rel="nofollow">tos</a></li>
+  <li><a href="https://support.beeimg.com/" rel="nofollow">support</a></li>
+  <li><a href="https://tools.beeimg.com/" rel="nofollow">tools</a></li>
+  <li><a href="//beeimg.com/about" rel="nofollow">about us</a></li>
+</ul>
+<ul class="nav navbar-nav pull-right">
+  <!--<li class="bg-info"><a href="//beeimg.com/modals?notice" data-target="#note" rel="nofollow" data-toggle="modal"><span class="glyphicon glyphicon-tree-deciduous"></span><b>Notice</b></a></li>-->
+  <li><a href="http://virtualupload.net/" rel="nofollow" target="_blank">VirtualImage</a></li>
+  <li><a data-original-title="Made in Sri Lanka" href="//beeimg.com/" rel="nofollow" style="font-weight:bold;" data-placement="top" data-toggle="tooltip" title="">© BeeIMG 2012 - 2016</a></li>
+</ul>
+</div>
+<div class="modal fade" id="note" tabindex="-1" role="dialog" aria-labelledby="social" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"></div></div></div>
+</footer>
+</body>
+</html>
