@@ -1,15 +1,8 @@
-<!DOCTYPE html><!-- Built With HTML5, CSS3, Bootstrap 3, Jquery, PHP7 and NodeJS. Copyright BeeIMG 2016. Made In Sri Lanka. -->
+<!DOCTYPE html>
 <html>
 <head>
-
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <title>BeeIMG uploader</title>
-<link rel="shortcut icon" type="image/x-icon" href="https://i.beeimg.com/resources/icons/favicon.ico">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap-theme.min.css">
-<link rel="stylesheet" href="https://i.beeimg.com/resources/beeimg-combined.min.css"/>
+<title>BeeIMG uploader BETA</title>
+<link rel="stylesheet" href="./css/beeimg-combined.css"/>
 </head>
 <body style="background-image: linear-gradient(rgb(192, 93, 10), rgb(168, 0, 65)); background-repeat: no-repeat; background-attachment: fixed;" id="container"><div class="pace  pace-inactive"><div data-progress="99" data-progress-text="100%" style="transform: translate3d(100%, 0px, 0px);" class="pace-progress">
   <div class="pace-progress-inner"></div>
@@ -17,8 +10,7 @@
 <div class="pace-activity"></div></div>
 <div id="wrapper">
 <script>window.$ = window.jQuery = require('./js/jquery.js');</script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="https://i.beeimg.com/resources/beeimg-combined.min.js"></script>
+<script type="text/javascript" src="./js/beeimg-combined.js"></script>
 <script type="text/javascript">
 var j = jQuery.noConflict();
 j(document).ready(function() {
@@ -51,13 +43,14 @@ function loadscri() {
 <header><div id="header">
 <div class="navbar-wrapper">
 <div class="navbar navbar-default navbar-static-top" style="padding: 0% 2%;">
-<div class="navbar-header">
+<div class="navbar-header pull-left">
 <a data-original-title="BeeIMG Free Image Hosting" style="float: left;padding: 7px 7px;" href="//beeimg.com/" data-placement="right" data-toggle="tooltip" title="">
 <img src="https://i.beeimg.com/resources/images/logo.png" alt="BeeIMG Logo" style="width:auto;max-height:35px"></a>
-<span class="nav navbar-nav pull-right">
-<li><a href="//beeimg.com/login" id="login_li" data-toggle="modal" data-target="#login"><i class="glyphicon glyphicon-log-in"></i>Login</a></li>
-</span>
-</div></div></div></div>
+</div>
+<ul class="nav navbar-nav pull-right">
+<li><a id="login_li" data-toggle="modal" data-target="#login"><i class="glyphicon glyphicon-log-in"></i>Login</a></li>
+</ul>
+</div></div></div>
 <div class="modal fade" id="social" tabindex="-1" role="dialog" aria-labelledby="social" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"></div></div></div>
 <div class="modal modal-static fade" tabindex="-1" id="processing-modal" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"></div></div></div>
 <div class="modal fade" id="lang" tabindex="-1" role="dialog" aria-labelledby="social" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"></div></div></div>
@@ -85,6 +78,7 @@ function loadscri() {
             <label for="api-key" class="control-label">API Key:</label>
             <input type="text" class="form-control text-center" id="key" disabled>
           </div>
+			<span id="file" class="btn btn-info">Select Dir</span>
         </form>
       </div> </div>
       <div class="modal-footer">
@@ -94,9 +88,9 @@ function loadscri() {
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
-<script src="https://cdn.jsdelivr.net/pouchdb/6.0.7/pouchdb.min.js"></script>
+<script src="./node_modules/pouchdb/dist/pouchdb.js"></script>
 <script type="text/javascript">
-var db = new PouchDB('beeimg-test');
+var db = new PouchDB('beeimgtest2');
 
 /*db.put({
   _id: 'test',
@@ -104,8 +98,11 @@ var db = new PouchDB('beeimg-test');
   age: 69
 });*/
 
-db.get('user_1').then(function (user) {
-  j("#login_li").html('<i class="glyphicon glyphicon-refresh"></i>Loggedin as '+user.name+'</a>');
+db.get('user1').then(function (user) {
+  j("#login_li").html('<i class="glyphicon glyphicon-user"></i>Loggedin as '+user.name+'</a>');
+}).catch(function (err) {
+  // handle any errors
+	console.log(err);
 });
 /*
 db.get('test').then(function (doc) {
@@ -150,43 +147,30 @@ j.ajax({
 		 }
      )
 });
+
 j("#save").click(function(l){;
 l.preventDefault();
 var u = j("#username").val();
 var k = j("#key").val();
 
-db.get('user_1').then(function (user) {
-  if(user.key==k) return;
-  db.remove(user);
+if(!k) return;
+
+//db.get('user1').then(function (user) {
+  //if(user.key==k) return;
+  //db.remove(user);
 	db.put({
-	  _id: 'user_1',
+	  _id: 'user1',
 	  name: u,
 	  key: k
 	});
+	j("#login_li").html('<i class="glyphicon glyphicon-user"></i>Loggedin as '+user.name+'</a>');
 	alerty("Updated","info");
-});
+//});
 
 alerty("Loggedin","info");
 j('#login').modal('toggle');
 });
-
-j(function() {
-    function reposition() {
-        var modal = j(this),
-            dialog = modal.find('.modal-dialog');
-        modal.css('display', 'flex'); modal.css('align-items', 'center');
-
-        // Dividing by two centers the modal exactly, but dividing by three 
-        // or four works better for larger screens.
-        //dialog.css("margin-top", Math.max(0, (j(window).height() - dialog.height()) / 2));
-    }
-    // Reposition when a modal is shown
-    j('.modal').on('show.bs.modal', reposition);
-    // Reposition when the window is resized
-    j(window).on('resize', function() {
-        j('.modal:visible').each(reposition);
-    });
-});</script></header><div id="contents">
+</script></header><div id="contents">
 <div id="promo_div" class="container"></div><div id="noti"></div>
 <script type="text/javascript">
 var uploadconfig = {
@@ -261,7 +245,11 @@ j(document).ready(function() {
 	</span>
 </div>
 <script>Resumable = require('./js/resumable.js');</script>
+<script type="text/javascript">
+var r;
+</script>
 <script type="text/javascript" src="./js/uploader.js"></script>
+<script>require('./renderer.js')</script>
 <div id="cupload" class="well container carousel slide pull-down fadeInUp animated">
   <div class="carousel-inner">
     <div class="item"><div class="container"><h4 class="text-center">No IP's will be recorded on Uploading. By Uploading your agree to our a <a href="/tos">terms of service</a>.</h4></div></div>

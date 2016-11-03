@@ -1,10 +1,11 @@
 {
-  "name": "electron-app",
-  "version": "1.0.0",
-  "description": "",
+  "name": "BeeIMG-Desktop",
+  "version": "0.1.0",
+  "description": "BeeIMG Desktop App",
   "main": "main.js",
   "dependencies": {
-    "pretty-bytes": "^2.0.1"
+    "pretty-bytes": "^2.0.1",
+	"pouchdb": "^6.0.0"
   },
   "devDependencies": {
     "electron-prebuilt": "^0.35.2",

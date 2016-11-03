@@ -305,7 +305,7 @@
       }
       var files = [];
       $h.each(fileList, function(file){
-        var fileName = file.name;
+        var fileName = file.name.toLowerCase();
         if(o.fileType.length > 0){
           var fileTypeFound = false;
           for(var index in o.fileType){

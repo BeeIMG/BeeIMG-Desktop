@@ -1,14 +1,16 @@
-/* Build 1.1.3 dev | 18/02/2016 */
+/* Build 1.2.4 dev | 17/10/2016 */
+var	_bid = '1.2.3'; var	_bd = '13/07/2016'; console.log("you are using BeeIMG Uploader version "+_bid+" released on "+_bd+" Change log https://beeimg.com/uploader/changes © BeeIMG.com"); console.log("Know how to code? join us https://github.com/BeeIMG Proudly Coded in #LKA");
 function imgError(image) {
-    image.onerror = "";
+    image.onerror = "";// try to add cdn version hereh
     //image.src = "/beeimg/resources/noimage.png";
-	image.src = "/resources/images/noimage.png";
+	image.src = "https://i.beeimg.com/resources/images/noimage.png";
     return true;
 	}
-	
-var lid = []; var urls = [];
-var p = 0; var u = 0;
+var lid = []; var urls = []; var beeimg_binary = '011000100110010101100101011010010110110101100111';
+if (window.location.protocol !== 'https:') http_c = "http:"; else http_c = "https:";
+var paused = 0; var upload = 0;
 j(document).ready(function() {
+	j('#urlholder').val('');
     var pasteCatcher = j('<div/>', {
         'id': 'CV-upload-container',
         'style': 'position: absolute;top: 0px;margin: 0px;',
@@ -30,29 +32,22 @@ j(document).ready(function() {
     window.addEventListener("paste", handlepaste);
 	
 	j(function() {
-    var beforeUnloadTimeout = 0 ;
-    j(window).bind('beforeunload', function()  {
-		    if(p===1 || u===1){
-			if(p===0) r.pause();
-			return 'are you sure';
+		var beforeUnloadTimeout = 0;
+		j(window).bind('beforeunload', function() {
+			if (upload === 1) {
+				if (paused === 0) r.pause();
+				return 'are you sure';
 			}
-        beforeUnloadTimeout = setTimeout(function() {
-			if(p===0) r.upload();
-		  },500);
-    });
-    j(window).bind('unload', function() {
-        if(typeof beforeUnloadTimeout !=='undefined' && beforeUnloadTimeout !== 0)
-            clearTimeout(beforeUnloadTimeout);
-    });
-	}); 
+			beforeUnloadTimeout = setTimeout(function() {
+				if (paused === 0) r.upload();
+			}, 500);
+		});
+		j(window).bind('unload', function() {
+			if (typeof beforeUnloadTimeout !== 'undefined' && beforeUnloadTimeout !== 0)
+				clearTimeout(beforeUnloadTimeout);
+		});
+	});
 
-	window.onbeforeunload = function(){
-		if(p===1 || u===1){
-			if(p===0) r.pause();
-			 return "You're leaving the site.";
-		}
-	};
-	
 	var first = false; var second = false;
 	
     j('body').on('dragenter', function(e) {
@@ -97,14 +92,14 @@ j(document).ready(function() {
         var notycheck = notify.permissionLevel();
         if (notycheck == "default") {
             notify.requestPermission();
-            Alertify.log.success(body);
-            Alertify.log.info("If you like to see desktop notifications. click allow.");
+			alerty(body,"success");
+			alerty("If you like to see desktop notifications. click allow.","info");
         }
         if (notycheck == "granted") {
             desktopnotysend(title, body, icon);
         }
         if (notycheck == "denied") {
-            Alertify.log.success(body);
+			alerty(body,"success");
         }
 
         function desktopnotysend(title, body, icon) {
@@ -194,7 +189,7 @@ j(document).ready(function() {
             clipupload(src, 'url');
         }
     }
-
+	
     function clipupload(data, method) {
         var unique = "clip-" + Math.ceil(Math.random() * 100 + 1);
         var item = j('#upload-center ub#' + unique);
@@ -236,24 +231,26 @@ j(document).ready(function() {
 
         var listitem = '<ub id="' + id + '" class="container col-xs-12 alert alert-warning-alt" style="display: none;"><h4><i class="glyphicon glyphicon-' + methodicon + '"></i><b>' + method + '</b>: <em><span id="filedata">' + filename + '</span></em> (<span id="filesize">' + formatSize(filesize) + '</span>) <span class="progressvalue"></span></h4><div class="progress progress-striped"><div class="progress-bar progress-bar-info" role="progressbar"></div></div>' +
             '<span class="thumbspace pull-right" style="opacity: 0.7;"><img src="" style="max-width: 90px;max-height: 68px;border-radius: 5px;display:none;" onerror="imgError(this);"></img></span><p><i class="glyphicon glyphicon-transfer"></i>Status: <span class="status">Pending</span></p>' +
-            '<span class="col-md-4 btn-holder btn-group"></span><span class="col-md-5 url-holder panel text-center" style="margin-bottom:-10%;padding:5px;display: none;"></span></ub>';
+            '<span class="col-md-4 col-sm-3 col-xs-12 btn-holder btn-group text-center"></span><span class="col-md-5 col-sm-6 col-xs-12 url-holder panel text-center" style="padding: 5px; margin-bottom: -7px; margin-top: 1px;display: none;"></span></ub>';
 
-        j("#upload-center").prepend(listitem);
+        j("#upload-center").append(listitem);
         j("#upload-center").promise().done(function() {
             j("#upload-center ub#" + id).show("medium");
         });
 
-        if (method == 'URL' && filename != 'base64') checkurl(data, id);
+        if (method == 'URL' && filename != 'base64') setTimeout(function(){ checkurl(data, id) }, 10)
     }
 
     function btnshow(btn, id) {
         var item = j('#upload-center ub#' + id + ' .btn-holder');
         var btnpause = '<span class="btn btn-info pause"><i class="glyphicon glyphicon-pause"></i>Pause</span>';
+
         var btnresume = '<span class="btn btn-success resume"><i class="glyphicon glyphicon-play"></i>Resume</span>';
         var btnrety = '<span class="btn btn-warning retry"><i class="glyphicon glyphicon-repeat"></i>Retry</span>';
         var btncancel = '<span class="btn btn-danger cancel"><i class="glyphicon glyphicon-remove-sign"></i>Cancel</span>';
         var btnremove = '<span class="btn btn-danger remove"><i class="glyphicon glyphicon-remove"></i>Remove</span>';
 		var btnstart = '<span class="btn btn-info resume"><i class="glyphicon glyphicon-play"></i>start</span>';
+		var btnprivate = '<span class="btn btn-warning private"><i class="glyphicon glyphicon-eye-close"></i>private</span>';
         if ((btn === 'pause') && (item.find('.pause').length === 0)) {
             item.find('.resume').hide("slow").remove();
             item.prepend(btnpause);
@@ -272,9 +269,17 @@ j(document).ready(function() {
         }
         if ((btn === 'remove') && (item.find('.remove').length === 0)) {
             item.find('.cancel').hide("slow").remove();
-            item.find('.pause').hide("slow").remove();
+			item.find('.pause').hide("slow").remove();
             item.prepend(btnremove);
             btnfunctionsremove();
+        }
+		if ((btn === 'private') && (item.find('.private').length === 0)) {
+            item.prepend(btnprivate);
+				j('.private').off().on('click', function() {
+					var id = j(this).data('imgid'); 
+					if(id) make_private(id);
+					j(this).addClass('disabled');
+				});
         }
         if ((btn === 'start') && (item.find('.remove').length === 0)) {
             item.find('.pause').hide("slow").remove();
@@ -284,17 +289,18 @@ j(document).ready(function() {
 
     function btnfunctions(file) {
         j('#' + file.uniqueIdentifier + ' .cancel').off().on('click', function(e) {
-            filesintheq--; if(filesintheq!=0) { file.resume(); } file.cancel();
-			console.log(filesintheq);
-			if(filesintheq!=0)
+            filesintheq--; if(filesintheq!==0) { file.resume(); } file.cancel();
+			//console.log(filesintheq);
+			/*if(filesintheq!==0)
 			{
 				pid = j('#upload-center ub:first').attr('id');
 				pfile = r.getFromUniqueIdentifier(pid);
-				pfile.abort();
+				console.log(pfile);
+				pfile.cancel();
 				btnshow('start', pfile.uniqueIdentifier); btnfunctions(pfile);
 				j('#' + pfile.uniqueIdentifier + '').attr('class', 'container col-xs-12 alert alert-info-alt').find('.status').text('Pending');
-			}
-            p=0; u=0;
+			}*/
+            paused=0; upload=0;
             var item = j(this).parents('ub');
             j(this).remove(); if(filesintheq==0) { j("#prog_bar").fadeOut().remove(); }
             item.attr('class', 'container col-xs-12 alert alert-danger-alt').find('.status').text('Canceled');
@@ -307,32 +313,71 @@ j(document).ready(function() {
         });
         j('#' + file.uniqueIdentifier + ' .pause').off().click(function() {
             file.abort();
-            p = 1; u=1;
             var item = j(this).parents('ub');
             j(this).remove();
-            item.attr('class', 'container col-xs-12 alert alert-warning-alt').find('.status').text('Paused');
-            item.find('.progress-bar').attr('class', 'progress-bar progress-bar-warning');
-            btnshow('resume', file.uniqueIdentifier);
-            btnfunctions(file);
+            _bipause(item,file);
         });
         j('#' + file.uniqueIdentifier + ' .resume').off().click(function() {
             file.resume();
-            p = 0; u=1;
             var item = j(this).parents('ub');
             j(this).remove();
-            item.attr('class', 'container col-xs-12 alert alert-info-alt').find('.status').text('Resumed');
-            item.find('.progress-bar').attr('class', 'progress-bar progress-bar-info');
-            btnshow('pause', file.uniqueIdentifier);
-            btnfunctions(file);
+            _biresume(item,file);
         });
     }
+	
+    function _bipause(item,file) {
+		paused=1; upload=1;
+		if(!file) var file = r.files[0];
+        item.attr('class', 'container col-xs-12 alert alert-warning-alt').find('.status').text('Paused');
+        item.find('.progress-bar').attr('class', 'progress-bar progress-bar-warning');
+		btnshow('resume', file.uniqueIdentifier);
+		btnfunctions(file);
+    }
+ 
+    function _biresume(item,file) {
+        paused=0; upload=1;
+		if(!file) var file = r.files[0];
+		item.attr('class', 'container col-xs-12 alert alert-info-alt').find('.status').text('Resumed');
+		item.find('.progress-bar').attr('class', 'progress-bar progress-bar-info');
+		btnshow('pause', file.uniqueIdentifier);
+		btnfunctions(file);
+    }
+	
+	function make_private(id) {
+	j.ajax({
+            url: "https://beeimg.com/adddetails",
+            type: "POST",
+            cache: false,
+            async: false,
+            data: {
+		        imageid: id,
+				privacy: 'private',
+            },
+            success: function(data) {
+				if(data==1)	alerty("Privacy status updated to private on " + id,"success");
+				if(data==0)	alerty("Privacy status update failed","error");
+				if(!j.isNumeric(data)) alerty("unexpected error","error");
+            }
+        })
+	}
+	
+	j(window).keypress(function (e) {
+	  if (e.keyCode === 0 || e.keyCode === 32) {
+		e.preventDefault();
+		if(upload===0) return false; else if(paused===0) { r.pause();
+            var item = j('.uploading');  _bipause(item);
+			} else if(paused===1) { r.upload();
+		var item = j('.uploading');  _biresume(item);
+			} else return false;
+	  }
+	})
 
     function btnfunctionsremove() {
         j('.remove').off().on('click', function() {
             var item = j(this).parents('ub');
             j(this).remove();
             item.find('.status').text('Removeing');
-            p = 0;
+            paused = 0;
             item.hide("slow");
             item.promise().done(function() {
                 item.remove();
@@ -340,6 +385,7 @@ j(document).ready(function() {
             });
         });
     }
+	
 	function uc_slide_up() {
          setTimeout(function() {
 			   if (j('#upload-center').html() === '')
@@ -378,6 +424,25 @@ j(document).ready(function() {
         return (pathtofile + pathimgthumb + pathimgsite + pathtodelete);
     }
 	
+	function afterupload(json,item) {
+			if (json.files.code == 200) {
+				lid.push(json.files.name);
+				item.attr('class', 'container col-xs-12 alert alert-success-alt').find('.status').text('Done');
+				item.promise().done(function() {
+					item.find('.url-holder').html(processdata(json)).show(1000).css('display', '');
+				});
+				item.find('.btn-holder .cancel').html('<i class="glyphicon glyphicon-remove"></i> Remove');
+				item.find('span.thumbspace img').hide().attr("src", json.files.thumbnail_url).show(1500).css('display', '');
+				item.find('span.thumbspace').css('opacity', '1');
+				item.find('#filesize').text(formatSize(json.files.size));
+				item.find('.progress-bar').attr('class', 'progress-bar progress-bar-success');
+			} else {
+				item.attr('class', 'container col-xs-12 alert alert-danger-alt').find('.status').html('Failed!! | ' + json.files.status + ' code:' + json.files.code);
+				item.find('.progress-bar').attr('class', 'progress-bar progress-bar-danger');
+				item.find('span.thumbspace').css('opacity', '0.5');
+			}
+    }
+	
     var uq = 0;
     j("#addurlbtn").on("click", function() {
         var input = j("#urlholder").val();
@@ -385,31 +450,28 @@ j(document).ready(function() {
         if (input.length === 0) return false;
         j('#urlholder').prop('disabled', true);
         j('#addurlbtn').prop('disabled', true);
-        var urlcheck = input.match(/\b(https?):\/\/[[\w-\.\/]+/gi);
+        var urlcheck = input.match(/\b(https?):\/\/+/gi);
 			if (!urlcheck) { 
 			dom.attr('class', 'input-group col-md-8 col-xs-12 has-error');
 			j('#urlholder').prop('disabled', false);
 			j('#addurlbtn').prop('disabled', false);
 			return false;
 			} else dom.attr('class', 'input-group col-md-8 col-xs-12 has-success');
-        //var urlcheck2 = urlcheck.match(/\b(jpg|jpeg|png|gif)/gi);
-        j.each(urlcheck, function(index, value) {
-            var unique = "url-" + Math.ceil(Math.random() * 100 + 1);
-            if ((j.inArray(value, urls)) == -1) {
-                urls.push(value);
-                uploadcenter(value, 'URL', unique);
-                var item = j('#upload-center ub#' + unique); j("#urlholder").val("");
-                item.attr('class', 'container col-xs-12 alert alert-info-alt').find('.status').text('Preparing');
-                item.find('span.thumbspace img').attr("src", value).show("slow");
-                uq++;
-            }
-        });
+		if (urlcheck) { 
+		var unique = "url-" + Math.ceil(Math.random() * 100 + 1);
+			urls.push(input);
+			uploadcenter(input, 'URL', unique);
+			var item = j('#upload-center ub#' + unique); j("#urlholder").val("");
+			item.attr('class', 'container col-xs-12 alert alert-info-alt').find('.status').text('Preparing');
+			uq++;
+		}
         j("#urlqstatus").hide().html("<b>" + uq + " urls were added</b>").slideDown("slow");
         j('#urlholder').prop('disabled', false);
         j('#addurlbtn').prop('disabled', false);
     });
 
     function uploadurl(imgurl, id) {
+		if(imgurl==beeimg_binary) return false;
         var item = j('#upload-center ub#' + id);
         j.ajax({
             xhr: function() {
@@ -418,55 +480,43 @@ j(document).ready(function() {
                     if (evt.lengthComputable) {
                         var percentComplete = evt.loaded / evt.total;
                         var percentage = Math.floor(percentComplete * 100);
-                        if (percentComplete === 1) item.find('.status').text('File Uploaded');
+                        if (percentComplete === 1) item.find('.status').text('Image Uploaded');
                         item.find('div.progress-bar').css('width', percentage + '%');
                         item.find('span.progressvalue').text(percentage + '%');
                     }
                 }, false);
                 return xhr;
             },
-            //url: "https://" + uploadconfig.server + "/beeimg/new/uploadtest.php",
-            url: "//"+uploadconfig.server+"/api/upload/url/json/",
+            url: http_c + "//" + uploadconfig.server + "/uploadtest.php",
+            //url: http_c + "//"+uploadconfig.server+"/api/upload/url/json/",
             type: "POST",
             dataType: 'json',
             cache: false,
             async: true,
             beforeSend: function() {
-                item.find('.status').text('Requesting System Upload'); u=1;
+                item.find('.status').text('Requesting System Upload'); upload=1;
             },
             data: {
                 url: imgurl,
             },
             success: function(json) {
-                btnshow('remove', id); u=0;
-                if (json.files.code == 200) {
-                    lid.push(json.files.name);
-                    item.attr('class', 'container col-xs-12 alert alert-success-alt').find('.status').text('Done');
-                    item.promise().done(function() {
-                        item.find('.url-holder').html(processdata(json)).show(1000).css('display', '');
-                    });
-                    item.find('.btn-holder .cancel').html('<i class="glyphicon glyphicon-remove"></i> Remove');
-                    item.find('span.thumbspace img').hide().attr("src", json.files.thumbnail_url).show(1500).css('display', '');
-                    item.find('span.thumbspace').css('opacity', '1');
-                    item.find('#filesize').text(formatSize(json.files.size));
-                    //desktopnoty("Image Uploaded","Image "+ json.files.name +" has been uploaded to BeeIMG",json.files.thumbnail_url);
-                    item.find('.progress-bar').attr('class', 'progress-bar progress-bar-success');
-                } else {
-                    item.attr('class', 'container col-xs-12 alert alert-danger-alt').find('.status').html('Failed!! | ' + json.files.status + ' code:' + json.files.code);
-                    item.find('.progress-bar').attr('class', 'progress-bar progress-bar-danger');
-                    item.find('span.thumbspace').css('opacity', '0.5');
-                    btnshow('retry', id);
-                    btnfunctionretry('', imgurl);
-                }
+				afterupload(json,item);
+                btnshow('remove', id); upload=0;
+				if (json.files.code !== 200) {
+					btnshow('retry', id);
+					btnfunctionretry('', imgurl);
+				}
             }
         });
     }
 
     function checkurl(url, id) {
         var item = j('#upload-center ub#' + id);
+		if(url==beeimg_binary) var filex = r.getFromUniqueIdentifier(id);
+		if(filex) item.find('.status').text('Checking Limit'); else item.find('.status').text('Checking URL'); 
         j.ajax({
-            url: "//"+uploadconfig.server+"/uploader/urlcheck",
-            //url: "https://" + uploadconfig.server + "/beeimg/new/uploadtest.php?fs",
+            url: http_c + "//"+uploadconfig.server+"/uploader/urlcheck",
+            //url: http_c + //" + uploadconfig.server + "/uploadtest.php?fs",
             type: "POST",
             dataType: "json",
             cache: false,
@@ -475,21 +525,33 @@ j(document).ready(function() {
                 url: url,
             },
             success: function(json) {
-                item.attr('class', 'container col-xs-12 alert alert-info-alt').find('.status').text('Checking URL');
+				j('#show_mlimit').text(json.mlimit); j('#show_xlimit').text(json.xlimit);
                 if (json.code == 200) {
-                    item.find('#filesize').text(formatSize(json.size));
-                    uploadurl(url, id);
+					if(!filex)
+					{
+						item.find('span.img').attr("src", json.thumb).show("slow");
+						if(json.size !=0 ) item.find('#filesize').text(formatSize(json.size));
+						uploadurl(url, id);
+					}
                 } else if (json.code == 720) {
-                    item.hide();
+                    item.remove();
                     querror(url + ' is not an image, please upload files which are ' + (uploadconfig.filetypes) + '', 'maxfs');
-				} else if (json.code == 503) {
-                    item.hide();
+				} else if (json.code == 730) {
+                    item.remove();
+                    querror(url + ' is an unknown image, please upload files which are ' + (uploadconfig.filetypes) + ' or regiser to remove this check', 'maxfs');
+				} else if (json.code == 403) {
+                    item.remove();
                     querror('the host of ' + url + ' is blocked, please contact admin for more info', 'hostblocked');
                 } else if (json.code == 625) {
-                    item.hide();
+                    item.remove();
                     querror(url + ' is too large, please upload files less than ' + formatSize(uploadconfig.maxfilesize) + '', 'maxfs');
+                } else if (json.code == 223) {
+                    item.remove(); if(filex) filex.abort();
+                    querror(json.status, 'maxl');
+                } else if (json.code == 503) {
+                    querror(json.status, 'maint'); if(filex) filex.abort();
                 } else {
-                    Alertify.log.danger("OH! :O There was a unexpected error :(");
+					alerty("OH! :O there was a unexpected error :(","error");
                 }
             }
         });
@@ -512,8 +574,8 @@ j(document).ready(function() {
     }
 
     var r = new Resumable({ //mobile chuck size vs desktop
-        target: "http://" + uploadconfig.server + "/uploadtest.php",
-        //target: "//"+uploadconfig.server+"/uploader/resumable/upload",
+        target: http_c + "//" + uploadconfig.server + "/uploadtest.php",
+        //target: http_c + "//"+uploadconfig.server+"/uploader/resumable/upload",
         maxFileSize: uploadconfig.maxfilesize,
         maxFiles: uploadconfig.maxfileuploads,
         fileType: uploadconfig.filetypes,
@@ -527,7 +589,7 @@ j(document).ready(function() {
             querror(file.fileName || file.name + ' is too small, please upload files larger than ' + formatSize(r.getOpt('minFileSize')) + '.', 'minfs');
         },
         maxFileSizeErrorCallback: function(file, errorCount) {
-            querror(file.fileName || file.name + ' is too large, please upload files less than ' + formatSize(r.getOpt('maxFileSize')) + '.', 'maxfs');
+            querror(file.fileName || file.name + ' is too large, please upload files smaller than ' + formatSize(r.getOpt('maxFileSize')) + '.', 'maxfs');
         },
         fileTypeErrorCallback: function(file, errorCount) {
             querror(file.fileName || file.name + ' has type not allowed, please upload files of type ' + r.getOpt('fileType') + '.', 'ftype');
@@ -537,9 +599,9 @@ j(document).ready(function() {
     r.assignBrowse(document.getElementById("rupload_btn"));
     r.assignDrop(document.body);
 
-    if (!r.support) alert("use the old uploader");
+    if (!r.support) alert("use our simple uploader https://tools.beeimg.com/simple/");
 
-    var fq = 1; var filesintheq = 0; var submitted; var perc=0; var chuckstarttime=0; var chunks=0; var pspeed=1;
+    var fq = 1; var filesintheq = 0; var submitted; var perc=0; var chuckstarttime=0; var chunks=0; var previousSpeed=1;
     r.on('chunkingStart', function(file) {
         j("#clear-UC").show("slow");
         j("#fileqstatus").hide().html("<b>" + fq + " files were added</b>").slideDown("slow");
@@ -553,82 +615,84 @@ j(document).ready(function() {
     });
     r.on("fileAdded", function(file, event) {
         var item = j('#upload-center ub#' + file.uniqueIdentifier); filesintheq++;
-		j("#upload-center").prepend('<div id="prog_bar"><div class="progress progress-striped"><div style="width: '+perc+'%;" class="progress-bar progress-bar-primary" role="progressbar"></div></div></div>');
-        var reader = new FileReader();
-        reader.onloadend = function() {
-			if(reader.result.length>5000000){ setTimeout(function() {
-				resizedataURL(reader.result, 50, 50, file.uniqueIdentifier);
-			}, 1500);
-			}
-        };
-        reader.readAsDataURL(file.file);
-
+		if(j('#prog_bar').length === 0) j("#upload-center").prepend('<div id="prog_bar"><div class="progress progress-striped"><div style="width: '+perc+'%;" class="progress-bar progress-bar-primary" role="progressbar"></div></div></div>');
+	 var timeout_jonsnow = Math.round(31+(filesintheq*100)*(file.size/100000)); 
+	 setTimeout(function() {
+		   var reader = new FileReader();
+			reader.onloadend = function() {
+				if(reader.result.length<8000000)
+				{ setTimeout(function() {
+					resizedataURL(reader.result, 50, 50, file.uniqueIdentifier);
+				}, 500);
+				}
+			};
+			reader.readAsDataURL(file.file);
+		}, timeout_jonsnow);
+		//console.log(timeout_jonsnow);
+		j('#rupload_btn').blur();
         item.find('.status').text('Pending');
         item.find('#filesize').text(formatSize(file.size));
-        if (p === 0) r.upload();
-		//console.log(p);
+        if (paused === 0) r.upload();
+		//console.log(paused); 
+		//console.log(file.size); console.log(file);
         btnshow('pause', file.uniqueIdentifier);
         item.find('.btn-holder .pause').attr('disabled', true);
         item.find('span.progressvalue').text('0%');
-		if(u==0) submitted = new Date().getTime();
+		if(upload === 0) submitted = new Date().getTime();
 		//console.log(file.isUploading);
     });
     r.on('fileProgress', function(file) {
-		if(!file.uniqueIdentifier) file = file.fileObj;
         var item = j('#upload-center ub#' + file.uniqueIdentifier);
-        if (file.progress() === 0) item.find('.status').text('Starting Upload');
+        if (file.progress() === 0) {
+			setTimeout(function(){ checkurl(beeimg_binary, file.uniqueIdentifier) }, 10)
+			item.find('.status').text('Starting Upload');
+			item.find('span.thumbspace').css('opacity', '0.1');
+		}
         item.find('.progress-bar').attr('class', 'progress-bar progress-bar-info');
         btnshow('pause', file.uniqueIdentifier);
-        btnfunctions(file); u = 1;
+        btnfunctions(file); upload = 1;
 		var now = new Date().getTime();
 		var timeSpent_sincestart = now - submitted;
 		var timeSpent_between_chunks = now - chuckstarttime;
-		if((chunks%uploadconfig.simultaneousuploads) === 0) {
-			var speed = Math.round( uploadconfig.chunksize*1024 / ( ( timeSpent_between_chunks*1000 ) ) ); //console.log(speed); console.log(timeSpent_between_chunks); 
-			chuckstarttime = now; pspeed = speed;
-			} else { var speed = pspeed; } chunks++;
+		if(((chunks%uploadconfig.simultaneousuploads) === 0) && (timeSpent_between_chunks>1000)) { //skip if less than 1 second
+			//console.log(chunks); console.log(file.chunks.length); console.log(file.chunks[chunks].endByte);
+			var currentSpeed = Math.round( uploadconfig.chunksize*1024*uploadconfig.simultaneousuploads / ( ( timeSpent_between_chunks*1000 ) ) );
+			//console.log("C1:"+currentSpeed);  console.log("TIME:"+timeSpent_between_chunks);
+			chuckstarttime = now; previousSpeed = currentSpeed;
+			} else { var currentSpeed = previousSpeed; } chunks++;
 		var time_remaining = Math.round(((timeSpent_sincestart / file.progress()) - timeSpent_sincestart) / 1000);
-		if (time_remaining>60) { min = Math.floor(time_remaining / 60); sec = (time_remaining % 60); cqps_ = min+' minutes and '+ sec+' seconds'; } else { sec = Math.floor(time_remaining / 1); cqps_ = sec+' seconds'; } 
-        item.find('.btn-holder .pause').attr('disabled', false);
-        item.attr('class', 'container col-xs-12 alert alert-info-alt').find('.status').text('Uploading ('+ cqps_ +' remaining) '+ speed +' kbps');
-        var percentage = Math.floor(file.progress() * 100);
-        if (file.progress() === 1) item.find('.status').text('Merging Uploaded Files');
+		if (time_remaining>60) { min = Math.floor(time_remaining / 60); sec = (time_remaining % 60); cqps_ = min+' minutes and '+ sec+' seconds remaining'; } else if (time_remaining<1) { cqps_ = 'almost done'; } else { sec = Math.floor(time_remaining / 1); cqps_ = sec+' seconds remaining'; } 
+        item.find('.btn-holder .pause').attr('disabled', false); if (!isFinite(time_remaining)) cqps_ = 'calculating time'; 
+        if (currentSpeed) item.attr('class', 'container col-xs-12 alert alert-info-alt').find('.status').text('Uploading ('+ cqps_ +') '+ currentSpeed +' kbps');
+		var percentage = Math.floor(file.progress() * 100);
+        if (file.progress() === 1) item.find('.status').text('Upload Done');
+		if (file.progress() > 0.1 ) item.find('span.thumbspace').css('opacity', file.progress());
         item.find('div.progress-bar').css('width', percentage + '%');
-        item.find('span.progressvalue').text(percentage + '%');
+        item.find('span.progressvalue').text(percentage + '%'); item.addClass("uploading");
     });
     r.on("fileSuccess", function(file, message) {
-		if(!file.uniqueIdentifier) file = file.fileObj;
-        var item = j('#upload-center ub#' + file.uniqueIdentifier); u = 0;
+        var item = j('#upload-center ub#' + file.uniqueIdentifier); item.removeClass("uploading");
         j.ajax({
-            url: "http://" + uploadconfig.server + "/uploadtest.php",
-            //url: "//"+uploadconfig.server+"/uploader/resumable/complete",
+            url: http_c + "//" + uploadconfig.server + "/uploadtest.php",
+            //url: http_c + "//"+uploadconfig.server+"/uploader/resumable/complete",
             type: "POST",
             dataType: "json",
             cache: false,
             beforeSend: function() {
-                item.find('.status').text('Requesting System Upload');
+                item.find('.status').text('Merging Uploaded Files');
             },
             data: {
                 uniqueid: file.uniqueIdentifier,
                 message: message,
             },
             success: function(json) {
-                btnshow('remove', file.uniqueIdentifier);
+				afterupload(json,item); upload = 0;
+				btnshow('remove', file.uniqueIdentifier);
                 if (json.files.code == 200) {
-                    lid.push(json.files.name); filesintheq--;
-                    item.attr('class', 'container col-xs-12 alert alert-success-alt').find('.status').text('Done');
-                    item.promise().done(function() {
-                        item.find('.url-holder').html(processdata(json)).show(1000).css('display', '');
-                    });
-                    item.find('span.thumbspace img').hide().attr("src", json.files.thumbnail_url).show(1500).css('display', '');
-                    item.find('span.thumbspace').css('opacity', '1');
-                    item.find('#filesize').text(formatSize(json.files.size));
+					if(uploadconfig.is_loggedin) { btnshow('private', file.uniqueIdentifier); item.find('.private').data('imgid',json.files.name); }
+                    filesintheq--;
                     desktopnoty("Image Uploaded", "Image " + json.files.name + " has been uploaded to BeeIMG", json.files.thumbnail_url);
-                    item.find('.progress-bar').attr('class', 'progress-bar progress-bar-success');
                 } else {
-                    item.attr('class', 'container col-xs-12 alert alert-danger-alt').find('.status').html('Failed!! | ' + json.files.status + ' code:' + json.files.code);
-                    item.find('.progress-bar').attr('class', 'progress-bar progress-bar-danger');
-                    item.find('span.thumbspace').css('opacity', '0.5');
                     btnshow('retry', file.uniqueIdentifier);
                     btnfunctionretry(file, '');
                 }
@@ -640,7 +704,6 @@ j(document).ready(function() {
     r.on('fileError', function(file, message) {
 	 querror(message, 'fileerror'); btnfunctionretry(file, '');
     });
-
     r.on('Progress', function() {
 		var percentage = Math.floor(this.progress() * 100); perc=percentage;
         j("#prog_bar").find('div.progress-bar').css('width', percentage + '%');
@@ -654,8 +717,9 @@ j(document).ready(function() {
     });
 
     j("#clear-UC").off().on("click", function() {
-        lid.splice(0, lid.length);
-        r.cancel(); j("#prog_bar").fadeOut().remove();
+        lid.splice(0, lid.length); paused=0; upload=0;
+        if(upload === 1) r.cancel(); 
+		j("#prog_bar").fadeOut().remove();
         j(this).hide("slow");
         j("#upload-center").slideUp("slow");
         j("#upload-center").promise().done(function() {
